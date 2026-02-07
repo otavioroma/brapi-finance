@@ -204,7 +204,7 @@ if __name__ == "__main__":
         if dados:
             print(f"\n{'='*70}")
             print(f"ATIVO: {dados['ticker']}")
-            print(f"Tipo de dados: {dados.get('periodo_tipo', "trimestral")}")
+            print(f"Tipo de dados: {dados.get('periodo_tipo', 'trimestral')}")
             print(f"{'='*70}")
             historico = dados['historico']
             # Ordena por ano/trimestre e filtra de 1T2024 em diante
