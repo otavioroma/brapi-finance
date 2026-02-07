@@ -1,2 +1,5 @@
 Old_code/
 .env
+__pycache__/
+*.pyc
+tempCodeRunnerFile.py
