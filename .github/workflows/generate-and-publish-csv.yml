@@ -1,0 +1,50 @@
+name: Generate and Publish CSV
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * *"
+
+jobs:
+  generate-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout brapi-finance
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install brapi python-dotenv
+
+      - name: Generate CSV
+        env:
+          BRAPI_TOKEN: ${{ secrets.BRAPI_TOKEN }}
+        run: python extrai_dados_financeiros_brapi.py
+
+      - name: Checkout dashboard repo
+        uses: actions/checkout@v4
+        with:
+          repository: otavioroma/brapi-finance-dashboard
+          token: ${{ secrets.DASHBOARD_REPO_TOKEN }}
+          path: dashboard
+
+      - name: Copy CSV to dashboard
+        run: |
+          mkdir -p dashboard/public/data
+          cp saida_financeira.csv dashboard/public/data/saida_financeira.csv
+
+      - name: Commit and push
+        run: |
+          cd dashboard
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/saida_financeira.csv
+          git diff --cached --quiet && exit 0
+          git commit -m "Update dashboard CSV"
+          git push
