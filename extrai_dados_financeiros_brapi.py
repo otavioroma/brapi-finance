@@ -17,12 +17,19 @@ from brapi import (
 # 1. CARREGAMENTO DE CONFIGURAÇÕES
 load_dotenv()
 
-# 2. INSTÂNCIA ÚNICA E REUTILIZÁVEL
-client = Brapi(
-    api_key=os.getenv("BRAPI_TOKEN"), 
-    timeout=10.0,
-    max_retries=3
-)
+# 2. INSTÂNCIA ÚNICA E REUTILIZÁVEL (lazy)
+_client = None
+
+
+def get_client():
+    global _client
+    if _client is None:
+        _client = Brapi(
+            api_key=os.getenv("BRAPI_TOKEN"),
+            timeout=10.0,
+            max_retries=3
+        )
+    return _client
 
 def format_periodo(end_date):
     # end_date geralmente e date; aceita str como fallback
@@ -51,7 +58,7 @@ def get_financial_report(ticker):
     Busca e processa dados financeiros trimestrais de forma robusta.
     """
     try:
-        response = client.quote.retrieve(
+        response = get_client().quote.retrieve(
             tickers=ticker,
             modules=[
                 "balanceSheetHistoryQuarterly",
@@ -73,7 +80,7 @@ def get_financial_report(ticker):
         if not balancos:
             # Fallback anual quando nao ha dados trimestrais
             periodo_tipo = "anual"
-            response_annual = client.quote.retrieve(
+            response_annual = get_client().quote.retrieve(
                 tickers=ticker,
                 modules=[
                     "balanceSheetHistory",
